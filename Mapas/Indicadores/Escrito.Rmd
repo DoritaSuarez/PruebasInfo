@@ -1,0 +1,212 @@
+---
+title: "Indicadores"
+author: "Universidad del Rosario"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    social: menu
+    source_code: embed
+---
+
+```{r setup, include=FALSE}
+library("flexdashboard")
+library("plotly")
+library("dplyr")
+library("lattice")
+library("sp")
+library("rgdal")
+library("rgeos")
+library("maptools")
+library("plyr")
+library("gapminder")
+library("scales")
+library("reshape2")
+library("tidyverse")
+# library("Rcpp")
+# Lectura de los datos
+set.seed(955)
+dat <- data.frame(cond = rep(c("A", "B"), each=10),
+                  xvar = 1:20 + rnorm(20,sd=3),
+                  yvar = 1:20 + rnorm(20,sd=3))
+
+```
+
+Indicadores I
+=======================================================================
+
+Row
+-----------------------------------------------------------------------
+
+### Número de contratos por municipio
+
+```{r}
+datos <- read.delim("../Secop2limpioAA.txt")
+
+
+shape <- readShapeSpatial("../Mapas/COL_adm2.shp", repair = T)
+
+deptos <- table(datos$Departamento) %>% data.frame() %>% .[-1,]
+names(deptos) <- c("Departamento", "Contratos")
+deptos$Departamento <- toupper(deptos$Departamento) %>% iconv(., to="ASCII//TRANSLIT")
+
+## Conversiones necesarias sobre shape
+
+np_dist <- fortify(shape, region = "NAME_2")
+np_dist$id <- iconv(np_dist$id, "UTF-8", "latin1") %>% toupper(.) %>% iconv(., to="ASCII//TRANSLIT")
+k <- which(np_dist$id== "SANTAFE DE BOGOTA") # Caso aislado - Hablar con CCE
+np_dist$id[k] <- "BOGOTA"
+
+p <- ggplot() +   geom_map(data = np_dist, aes(map_id = id), map = np_dist, color = "aliceblue", fill = "gray")+
+  geom_map(data = deptos, aes(map_id = Departamento, fill = Contratos), 
+           map = np_dist) + expand_limits(x = np_dist$long, y = np_dist$lat)+ylim(c(-5,13)) + xlim(c(-84,-64))
+p
+
+```
+
+### Porcentaje de contratos por segmento
+
+```{r}
+ segmento <- table(datos$Segmento) %>% data.frame() 
+ names(segmento) <- c("Segmento", "Cantidad")
+ 
+ colors <- c("#1aa3a3", "#b2e5e5","#0b5e56",  "#86becb" )
+ 
+ p <- plot_ly(segmento, labels = ~Segmento, values = ~Cantidad, type = 'pie',
+              textposition = 'inside',
+              textinfo = 'label+percent',
+              insidetextfont = list(color = '#FFFFFF'),
+              hoverinfo = 'text',
+              text = ~paste(Cantidad, 'Contratos'),
+              marker = list(colors = colors,
+                            line = list(color = '#FFFFFF', width = 1)),
+              #The 'pull' attribute can also be used to create space between the sectors
+              showlegend = FALSE) %>%
+   layout(title = '',
+          xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+ 
+ 
+ 
+ p
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Medias de los valores de los contratos por municipio
+
+```{r}
+valorContratos <- ddply(datos, .(Departamento), summarize,
+                        Medias = mean(as.numeric(as.character(Valor.Contrato)), na.rm = T)) %>% .[-1,]
+valorContratos$Departamento <- toupper(valorContratos$Departamento) %>% iconv(., to="ASCII//TRANSLIT")
+
+
+ggplot() + geom_map(data = np_dist, aes(map_id = id), map = np_dist, color = "aliceblue", fill = "gray")+
+  geom_map(data = valorContratos, aes(map_id = Departamento, fill = Medias), 
+                    map = np_dist) + expand_limits(x = np_dist$long, y = np_dist$lat) +
+                    scale_fill_gradient2(low = muted("red"), mid = "deepskyblue", midpoint = mean(valorContratos$Medias), high = muted("darkblue"), limits = c(0, max(valorContratos$Medias)))+
+  ylim(c(-5,13)) + xlim(c(-84,-64))
+
+```
+
+### Tipos de COntrato y segmentos de contrato
+
+```{r}
+colors <- rainbow(10)
+df <- table( datos$Modalidad.Contratacion, datos$Segmento) %>% data.frame()
+names(df) <- c("Tipo_Contrato", "Segmento", "Contratos")
+
+p <- plot_ly(data = df, x =~ Segmento, y=~Contratos, color= ~Tipo_Contrato, text = ~paste(Tipo_Contrato, Contratos, 'Contratos', color = colors))
+
+p
+```
+
+Indicadores II
+=======================================================================
+
+Row
+-----------------------------------------------------------------------
+
+### stat_density Example
+
+```{r}
+dfGamma = data.frame(nu75 = rgamma(100, 0.75),
+           nu1 = rgamma(100, 1),
+           nu2 = rgamma(100, 2))
+
+dfGamma = stack(dfGamma)
+
+p <- ggplot(dfGamma, aes(x = values)) +
+            stat_density(aes(group = ind, color = ind),position="identity",geom="line")
+ggplotly(p)
+```
+
+### Add Conditional Density Curves to Plot
+
+```{r}
+# dim1 <- c(rnorm(100, mean=1), rnorm(100, mean=4))
+# dim2 <- rnorm(200, mean=1)
+# cat <- factor(c(rep("a", 100), rep("b", 100)))
+# mydf <- data.frame(cbind(dim2, dim1, cat))
+# p <- ggplot(data=mydf, aes(x=dim1, y=dim2, colour=as.factor(cat))) +
+#   geom_point() +
+#   stat_density(aes(x=dim1, y=(-2+(..scaled..))),
+#                position="identity", geom="line")
+
+# stuff <- ggplot_build(p)
+# xrange <- stuff[[2]]$ranges[[1]]$x.range  # extract the x range to make the
+#                                           # new densities align with y-axis
+
+## Get densities of dim2
+# ds <- do.call(rbind, lapply(unique(mydf$cat), function(lev) {
+#     dens <- with(mydf, density(dim2[cat==lev]))
+#     data.frame(x=dens$y+xrange[1], y=dens$x, cat=lev)
+# }))
+# 
+# p <- p + geom_path(data=ds, aes(x=x, y=y, color=factor(cat)))
+# 
+# ggplotly(p)
+```
+
+Row
+-----------------------------------------------------------------------
+
+### geom_density and facet_wrap Together
+
+```{r}
+dd<-data.frame(matrix(rnorm(144, mean=2, sd=2),72,2),c(rep("A",24),rep("B",24),rep("C",24)))
+colnames(dd) <- c("x_value", "Predicted_value",  "State_CD")
+
+dd <- data.frame(
+  predicted = rnorm(72, mean = 2, sd = 2),
+  state = rep(c("A", "B", "C"), each = 24)
+)
+
+grid <- with(dd, seq(min(predicted), max(predicted), length = 100))
+normaldens <- ddply(dd, "state", function(df) {
+  data.frame(
+    predicted = grid,
+    density = dnorm(grid, mean(df$predicted), sd(df$predicted))
+  )
+})
+
+p <- ggplot(dd, aes(predicted))  +
+            geom_density() +
+            geom_line(aes(y = density), data = normaldens, colour = "red") +
+            facet_wrap(~ state)
+ggplotly(p)
+```
+
+### Density and Scatterplot Overlay Using geom_density
+
+```{r}
+df <- data.frame(x <- rchisq(1000, 10, 10),
+                 y <- rnorm(1000))
+
+p <- ggplot(df, aes(x, y)) + 
+     geom_point(alpha = 0.5) + 
+     geom_density_2d() + 
+     theme(panel.background = element_rect(fill = '#ffffff'))
+
+ggplotly(p)
+```
