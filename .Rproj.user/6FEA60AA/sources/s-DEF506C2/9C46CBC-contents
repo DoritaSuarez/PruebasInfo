@@ -1,0 +1,15 @@
+library(ggplot2)
+
+
+y1 <- round(rnorm(n = 36, mean = 7, sd = 2)) # Simulate data from normal distribution
+y2 <- round(rnorm(n = 36, mean = 21, sd = 6))
+y3 <- round(rnorm(n = 36, mean = 50, sd = 8))
+x <- rep(LETTERS[1:12], 3)
+grp <- rep(c("Grp 1", "Grp 2", "Grp 3"), each = 12)
+dat <- data.frame(grp, x, y1, y2, y3)
+
+# Using default theme
+p1 <- ggplot(data = dat, aes(x = x, y = y1)) + geom_bar(stat = "identity", fill = "#552683") +
+  coord_flip() + ylab("Y LABEL") + xlab("X LABEL") + facet_grid(. ~ grp) +
+  ggtitle("TITLE OF THE FIGURE")
+p1

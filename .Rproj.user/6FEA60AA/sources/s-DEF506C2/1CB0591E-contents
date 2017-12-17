@@ -1,0 +1,14 @@
+---
+title: "test"
+output: 
+  slidy_presentation:
+    css: testcustom.css
+    font_adjustment: -3
+---
+
+## Introduction {#intro}
+
+### Hello World! 
+
+This works: background-color: #6495ed;  
+This does not work: background-image: url(Presentation.jpg);

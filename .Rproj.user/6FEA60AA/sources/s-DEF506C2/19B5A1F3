@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1513457157953.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "19B5A1F3",
+    "lastKnownWriteTime" : 1513457298,
+    "last_content_update" : 1513457298109,
+    "path" : "~/tic-tank/Dorita/CCE - CINTEL/entregable_4_infografias/Prueba_inicial/PruebasInfo/Infografias/server.R",
+    "project_path" : "Infografias/server.R",
+    "properties" : {
+        "cursorPosition" : "15,8",
+        "scrollLine" : "8"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
