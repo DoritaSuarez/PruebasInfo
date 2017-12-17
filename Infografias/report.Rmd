@@ -1,0 +1,17 @@
+---
+title: "Pruebota"
+author: "Pueba"
+date: "16 de diciembre de 2017"
+output: pdf_document
+    includes:
+      in_header: header.tex
+---
+
+
+knit(f)  # compile to tex
+
+# Super dato
+
+Hola, este es el reporte automático generado por el script de shinny
+
+# Este es el grafico 

@@ -1,0 +1,7 @@
+\usepackage{background}
+
+\backgroundsetup{
+contents={%
+  \includegraphics[]{image.png}
+  }%
+}
