@@ -12,6 +12,7 @@ library("reshape2")
 library("tidyverse")
 library("data.table")
 
+
 # Lectura del shape de Colombia por departamento
 
 shape_dpto <- readShapeSpatial("Mapas/Nuevos_mapas/depto.shp", repair = T)
@@ -150,9 +151,16 @@ write.table(shape_bogota, "shape_bogota.txt", sep = "\t")
 # Uso 
 
 shape_predeterminado <- shape_municipios[cod_dpto == "73"]
+shape_predeterminado_fondo <- shape_departamental[id == "73"]
 datos_simulados22 <- shape_predeterminado[, .(conteo = length(order)), by = id]
 
-p1 <- ggplot() + geom_map(data = shape_predeterminado, aes(map_id = id), map = shape_predeterminado, color = "aliceblue", fill = "gray")+
-  geom_map(data = datos_simulados22, aes(map_id = id, fill = conteo), 
-           map = shape_predeterminado) + expand_limits(x = shape_predeterminado$long, y = shape_predeterminado$lat)
-p1
+ggplot() +
+  geom_map(data = shape_predeterminado, aes( map_id = id), map = shape_predeterminado, color = "aliceblue", fill = "gray") +
+  # expand_limits(x = shape_predeterminado_fondo$long, y = shape_predeterminado_fondo$lat) +
+# expand_limits(x = shape_predeterminado$long, y = shape_predeterminado$lat) +
+  # geom_map(data = shape_predeterminado, aes(map_id = id), map = shape_predeterminado, color = "aliceblue", fill = "gray")+
+  geom_map(data = datos_simulados22, aes(map_id = id, fill = conteo), map = shape_predeterminado) +
+  expand_limits(x = shape_predeterminado$long, y = shape_predeterminado$lat)
+
+
+
