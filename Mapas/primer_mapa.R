@@ -68,15 +68,91 @@ p1
 shape_dpto <- readShapeSpatial("Mapas/Nuevos_mapas/depto.shp", repair = T)
 
 shape2 <- readShapeSpatial("Mapas/COL_adm2.shp", repair = T)
-cruce <- data.table(shape2$ID_1, shape2$ID_2) %>%  setnames(names(.), c("cod_dpto", "cod_mpio"))
+cruce <- data.table(shape2$ID_1, shape2$NAME_1, shape2$ID_2, shape2$NAME_2) %>%  setnames(names(.), c("cod_dpto", "dpto", "cod_mpio", "mpio"))
+cruce[, mpio := iconv(mpio, from = "UTF-8", to = "latin1")]
+cruce[, dpto := iconv(dpto, from = "UTF-8", to = "latin1")]
+
 cruce[, cod_mpio := as.character(cod_mpio)]
+cruce[, cod_dpto := as.character(cod_dpto)]
 
-shape22 <- fortify(shape2, region = "ID_2") %>%  data.table() %>% left_join(., cruce, by = c("id" = "cod_mpio")) %>% data.table()
-shape12 <- shape22[cod_dpto == 6]
+shape22 <- fortify(shape2, region = "ID_2") %>%  data.table() %>% left_join(., cruce, by = c("id" = "cod_mpio")) %>% data.table() %>% data.table()
 
+shape12 <- shape22[cod_dpto == 1]
 datos_simulados22 <- shape12[, .(conteo = length(order)), by = id]
 
-p1 <- ggplot() + geom_map(data = shape12, aes(map_id = id), map = shape22, color = "aliceblue", fill = "gray")+
+p1 <- ggplot() + geom_map(data = shape12, aes(map_id = id), map = shape12, color = "aliceblue", fill = "gray")+
   geom_map(data = datos_simulados22, aes(map_id = id, fill = conteo), 
-           map = shape22) + expand_limits(x = shape12$long, y = shape12$lat)
+           map = shape12) + expand_limits(x = shape12$long, y = shape12$lat)
+p1
+
+# Corrigiendo departamentos
+
+diferentes_divipola <- unique(divipola$dpto)[!(unique(divipola$dpto) %in% unique(shape22$dpto))] %>% .[2] %>% as.character()
+diferentes_shape <- unique(shape22$dpto)[!(unique(shape22$dpto) %in% unique(divipola$dpto))]
+shape22[, dpto := ifelse(dpto == "San Andrés y Providencia", "Archipiélago de San Andrés, Providencia y Santa Catalina", dpto)]
+
+# Corrigiendo municipios
+
+diferentes_divipola <- unique(divipola$mpio)[!(unique(divipola$mpio) %in% unique(shape22$mpio))] %>% data.table() %>% setnames(names(.), "mpio")
+diferentes_shape <- unique(shape22$mpio)[!(unique(shape22$mpio) %in% unique(divipola$mpio))] %>% data.table() %>% setnames(names(.), "mpio") %>%  .[order(.$mpio)] %>% data.table()
+
+diferentes_divipola[, mpio := as.character(mpio)]
+diferentes_divipola[, sin_a := iconv(mpio, from="UTF-8", to = "latin1")]
+diferentes_divipola[, sin_a := tolower(iconv(sin_a, to="ASCII//TRANSLIT"))]
+
+diferentes_shape[, sin_a := tolower(iconv(mpio, to="ASCII//TRANSLIT"))]
+
+cruce1 <- left_join(diferentes_shape, diferentes_divipola, by = "sin_a") %>% na.omit()
+shape221 <- left_join(shape22, cruce1, by = c("mpio" = "mpio.x")) %>% data.table()
+shape221[, mpio := ifelse(is.na(mpio.y), mpio, mpio.y)]
+shape221[, sin_a := NULL]
+shape221[, mpio.y := NULL]
+
+shape22 <- shape221
+
+mpios_cambio <- read.delim("shape_divipola_nombres", header = T) %>% data.table()
+
+cambios <- data.table(diferentes_divipola, diferentes_shape)
+shape221 <- left_join(shape22, mpios_cambio, by = c("mpio" = "mpios_shape")) %>% data.table()
+shape221[, mpios_divipola := as.character(mpios_divipola)]
+shape221[, mpio := ifelse(is.na(mpios_divipola), mpio, mpios_divipola)]
+shape221[, mpios_divipola := NULL]
+
+shape22 <- shape221
+
+# Asignando los códigos divipola
+
+divipola_codigos <- divipola[, c("mpio", "cod_mpio1", "dpto", "cod_dpto")] %>% setnames(names(.), c("mpio", "cod_mpio_dp", "dpto", "cod_dpto_dp"))
+shape221 <- left_join(shape22, divipola_codigos, by = c("mpio", "dpto")) %>% data.table()
+shape221 <- shape221[, c("long", "lat", "order", "hole", "piece", "cod_mpio_dp", "group", "cod_dpto_dp", "mpio", "dpto")] %>%
+  setnames(c("cod_mpio_dp", "cod_dpto_dp"), c("id", "cod_dpto")) 
+  
+shape22 <- shape221
+
+shape_bogota <- shape22[mpio  == "Bogotá D.C."]
+shape_sin_bogota <- shape22[mpio  != "Bogotá D.C."]
+
+
+
+
+# Shapes finales ----------------------------------------------------------
+
+shape_departamental <- mapa_ordenado
+shape_municipios <- shape_sin_bogota
+shape_bogota <- shape_bogota
+
+write.table(shape_departamental, "shape_departamentos.txt", sep = "\t")
+write.table(shape_municipios, "shape_municipios.txt", sep = "\t")
+write.table(shape_bogota, "shape_bogota.txt", sep = "\t")
+
+
+
+# Uso 
+
+shape_predeterminado <- shape_municipios[cod_dpto == "73"]
+datos_simulados22 <- shape_predeterminado[, .(conteo = length(order)), by = id]
+
+p1 <- ggplot() + geom_map(data = shape_predeterminado, aes(map_id = id), map = shape_predeterminado, color = "aliceblue", fill = "gray")+
+  geom_map(data = datos_simulados22, aes(map_id = id, fill = conteo), 
+           map = shape_predeterminado) + expand_limits(x = shape_predeterminado$long, y = shape_predeterminado$lat)
 p1
