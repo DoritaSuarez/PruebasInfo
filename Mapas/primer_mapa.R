@@ -15,7 +15,7 @@ library("data.table")
 # Lectura del shape de Colombia por departamento
 
 shape_dpto <- readShapeSpatial("Mapas/Nuevos_mapas/depto.shp", repair = T)
-mapa_ordenado <- fortify(shape, region = "DPTO") %>%  data.table()
+mapa_ordenado <- fortify(shape_dpto, region = "DPTO") %>%  data.table()
 mapa_ordenado[, id := as.integer(id)]
 
 # Lectura del shape de Colombia por municipio
@@ -53,14 +53,30 @@ p1
 
 # Tomando un subconjunto de los datos
 
-datos_simulados_mpio <- datos_simulados[cod_dpto == 54]
+datos_simulados_mpio <- datos_simulados[cod_dpto == 50]
 mapa_ordenado_mpio1 <- mapa_ordenado_mpio[ id %in% datos_simulados_mpio$cod_mpio1]
 
-mapa_ordenado_mpio1[, hole := "FALSE"]
-mapa_ordenado_mpio1[, piece := 1]
+datos_simulados2 <- mapa_ordenado_mpio_1[, .(conteo = length(lat)), by = id]
 
 
 p1 <- ggplot() + geom_map(data = mapa_ordenado_mpio1, aes(map_id = id), map = mapa_ordenado_mpio1, color = "aliceblue", fill = "gray")+
-  geom_map(data = datos_simulados_mpio, aes(map_id = cod_mpio1, fill = conteo), 
+  geom_map(data = datos_simulados2, aes(map_id = id, fill = conteo), 
            map = mapa_ordenado_mpio1) + expand_limits(x = mapa_ordenado_mpio1$long, y = mapa_ordenado_mpio1$lat)
+p1
+
+
+shape_dpto <- readShapeSpatial("Mapas/Nuevos_mapas/depto.shp", repair = T)
+
+shape2 <- readShapeSpatial("Mapas/COL_adm2.shp", repair = T)
+cruce <- data.table(shape2$ID_1, shape2$ID_2) %>%  setnames(names(.), c("cod_dpto", "cod_mpio"))
+cruce[, cod_mpio := as.character(cod_mpio)]
+
+shape22 <- fortify(shape2, region = "ID_2") %>%  data.table() %>% left_join(., cruce, by = c("id" = "cod_mpio")) %>% data.table()
+shape12 <- shape22[cod_dpto == 6]
+
+datos_simulados22 <- shape12[, .(conteo = length(order)), by = id]
+
+p1 <- ggplot() + geom_map(data = shape12, aes(map_id = id), map = shape22, color = "aliceblue", fill = "gray")+
+  geom_map(data = datos_simulados22, aes(map_id = id, fill = conteo), 
+           map = shape22) + expand_limits(x = shape12$long, y = shape12$lat)
 p1
