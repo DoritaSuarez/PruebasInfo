@@ -2,8 +2,10 @@ library(dplyr)
 library(ggplot2)
 library(data.table)
 library(RColorBrewer)
+library(ggthemes)
+setwd("~/tic-tank/Dorita/CCE - CINTEL/entregable_4_infografias/Prueba_inicial/PruebasInfo/Infografias")
 
-shape_municipios <- read.delim("shape_municipios.txt") %>% data.table()
+shape_municipios <- read.delim("../Mapas/shape_municipios.txt") %>% data.table()
 # Uso 
 
 shape_predeterminado <- shape_municipios[cod_dpto == "91"]
@@ -22,51 +24,69 @@ datos_simulados22[, clasificacion5 := ifelse(conteo < quantile(conteo, 1/5), "Ni
 datos_simulados22[, clasificacion5 := factor(clasificacion5)]
 
 
-map <- ggplot() +
-  geom_map(data = shape_predeterminado, aes( map_id = id), map = shape_predeterminado, color = "aliceblue", fill = "gray") +
-  geom_map(data = datos_simulados22, aes(map_id = id, fill = clasificacion), map = shape_predeterminado) +
-  geom_map(data = shape_predeterminado, aes( map_id = id), map = shape_predeterminado, color = "white", fill = NA) +
-  expand_limits(x = shape_predeterminado$long, y = shape_predeterminado$lat) +
-  scale_fill_manual(values = c("#36E00B", "#F1E818", "#F10034"),
-                    labels = c("Bueno", "Regular", "Malo"),
-                    name = "Clasificación")
-map
-
-map <- ggplot() +
-  geom_map(data = shape_predeterminado, aes( map_id = id), map = shape_predeterminado, color = "aliceblue", fill = "gray") +
-  geom_map(data = datos_simulados22, aes(map_id = id, fill = clasificacion5), map = shape_predeterminado) +
-  geom_map(data = shape_predeterminado, aes( map_id = id), map = shape_predeterminado, color = "white", fill = NA) +
-  expand_limits(x = shape_predeterminado$long, y = shape_predeterminado$lat)+
-  scale_fill_manual(values = colorRampPalette(brewer.pal(5,"Greens"))(5),
-                    name = "Clasificación")
-
-map
-
-map <- ggplot() +
-  geom_map(data = shape_predeterminado, aes( map_id = id), map = shape_predeterminado, color = "aliceblue", fill = "gray") +
-  geom_map(data = datos_simulados22, aes(map_id = id, fill = clasificacion5), map = shape_predeterminado) +
-  geom_map(data = shape_predeterminado, aes( map_id = id), map = shape_predeterminado, color = "white", fill = NA) +
-  expand_limits(x = shape_predeterminado$long, y = shape_predeterminado$lat)+
-  scale_fill_manual(values = colorRampPalette(brewer.pal(5,"Blues"))(5),
-                    name = "Clasificación")
-
-map
-
+# map <- ggplot() +
+#   geom_map(data = shape_predeterminado, aes( map_id = id), map = shape_predeterminado, color = "aliceblue", fill = "gray") +
+#   geom_map(data = datos_simulados22, aes(map_id = id, fill = clasificacion), map = shape_predeterminado) +
+#   geom_map(data = shape_predeterminado, aes( map_id = id), map = shape_predeterminado, color = "white", fill = NA) +
+#   expand_limits(x = shape_predeterminado$long, y = shape_predeterminado$lat) +
+#   scale_fill_manual(values = c("#36E00B", "#F1E818", "#F10034"),
+#                     labels = c("Bueno", "Regular", "Malo"),
+#                     name = "Clasificación")
+# map
+# 
+# map <- ggplot() +
+#   geom_map(data = shape_predeterminado, aes( map_id = id), map = shape_predeterminado, color = "aliceblue", fill = "gray") +
+#   geom_map(data = datos_simulados22, aes(map_id = id, fill = clasificacion5), map = shape_predeterminado) +
+#   geom_map(data = shape_predeterminado, aes( map_id = id), map = shape_predeterminado, color = "white", fill = NA) +
+#   expand_limits(x = shape_predeterminado$long, y = shape_predeterminado$lat)+
+#   scale_fill_manual(values = colorRampPalette(brewer.pal(5,"Greens"))(5),
+#                     name = "Clasificación")
+# 
+# map
+# 
+# map <- ggplot() +
+#   geom_map(data = shape_predeterminado, aes( map_id = id), map = shape_predeterminado, color = "aliceblue", fill = "gray") +
+#   geom_map(data = datos_simulados22, aes(map_id = id, fill = clasificacion5), map = shape_predeterminado) +
+#   geom_map(data = shape_predeterminado, aes( map_id = id), map = shape_predeterminado, color = "white", fill = NA) +
+#   expand_limits(x = shape_predeterminado$long, y = shape_predeterminado$lat)+
+#   scale_fill_manual(values = colorRampPalette(brewer.pal(5,"Blues"))(5),
+#                     name = "Clasificación")
+# 
+# map
+# 
+# 
+# map <- ggplot() +
+#   geom_map(data = shape_predeterminado, aes( map_id = id), map = shape_predeterminado, color = "aliceblue", fill = "gray") +
+#   geom_map(data = datos_simulados22, aes(map_id = id, fill = conteo), map = shape_predeterminado) +
+#   geom_map(data = shape_predeterminado, aes( map_id = id), map = shape_predeterminado, color = "white", fill = NA) +
+#   expand_limits(x = shape_predeterminado$long, y = shape_predeterminado$lat) +
+#   scale_fill_gradient(low = "#FF7400",
+#                       high ="#36E00B",
+#                       name = "Clasificación")
+# map
 
 map <- ggplot() +
   geom_map(data = shape_predeterminado, aes( map_id = id), map = shape_predeterminado, color = "aliceblue", fill = "gray") +
   geom_map(data = datos_simulados22, aes(map_id = id, fill = conteo), map = shape_predeterminado) +
   geom_map(data = shape_predeterminado, aes( map_id = id), map = shape_predeterminado, color = "white", fill = NA) +
   expand_limits(x = shape_predeterminado$long, y = shape_predeterminado$lat) +
-  scale_fill_gradient(low = "#FF7400",
-                      high ="#36E00B",
-                      name = "Clasificación")
-map
+  scale_fill_gradient(name = "Clasificación")+
+  xlab("")+
+  ylab("")
+map +theme_wsj()
 
-map <- ggplot() +
-  geom_map(data = shape_predeterminado, aes( map_id = id), map = shape_predeterminado, color = "aliceblue", fill = "gray") +
-  geom_map(data = datos_simulados22, aes(map_id = id, fill = conteo), map = shape_predeterminado) +
-  geom_map(data = shape_predeterminado, aes( map_id = id), map = shape_predeterminado, color = "white", fill = NA) +
-  expand_limits(x = shape_predeterminado$long, y = shape_predeterminado$lat) +
-  scale_fill_gradient(name = "Clasificación")
-map
+
+map + theme(
+  plot.background = element_rect(fill = "gray"), 
+  panel.background = element_rect(fill = NA , colour= NA),
+  strip.background = element_rect(fill = "grey95", colour = "white"),
+  axis.line = element_line(colour = NA),
+  axis.text = element_text(colour = NA),
+  axis.ticks = element_line(colour = NA),
+  panel.grid.major = element_line(colour = NA),
+  panel.grid.minor = element_line(colour = NA),
+  # legend.position = "bottom",
+  legend.background = element_rect(colour = NA, fill = NA)
+)
+
+

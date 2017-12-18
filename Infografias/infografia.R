@@ -85,7 +85,7 @@ vplayout <- function(x,y)
 
 
 library(grid)
-pdf("tic-tank/Dorita/CCE - CINTEL/Aplicacion web/Pruebas/infog.pdf", width = 10, height = 20)
+pdf("infog.pdf", width = 10, height = 20)
 grid.newpage() 
 pushViewport(viewport(layout = grid.layout(4, 3)))
 grid.rect(gp = gpar(fill = "#E2E2E3", col = "#E2E2E3"))
